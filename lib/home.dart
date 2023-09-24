@@ -38,7 +38,7 @@ class _Body extends HookConsumerWidget {
     final Widget child;
     if (shader.hasValue && icon.hasValue) {
       final animation = useMemoized(
-        () => controller.drive(CurveTween(curve: Curves.easeInOut)),
+        () => controller.drive(CurveTween(curve: Curves.easeInOutQuad)),
         [controller],
       );
       child = AnimatedBuilder(
@@ -60,6 +60,7 @@ class _Body extends HookConsumerWidget {
     return Padding(
       padding: const EdgeInsets.all(32),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           child,
           const SizedBox(height: 32),

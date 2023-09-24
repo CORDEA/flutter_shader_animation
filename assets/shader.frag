@@ -1,12 +1,11 @@
 #include <flutter/runtime_effect.glsl>
 
 #define PI 3.14159265359
-#define BLACK vec4(0.0, 0.0, 0.0, 1.0)
 
 #define WIDTH_R 0.3
 #define LIGHT_R 0.02
 #define SPREAD_R 0.12
-#define RING_R 0.02
+#define RING_R 0.018
 #define MARGIN 0.19
 #define ANGLE PI * 15 / 11
 #define STAGE 0.3
@@ -16,6 +15,13 @@ uniform float uProgress;
 uniform sampler2D uTexture;
 
 out vec4 fragColor;
+
+bool has_color(vec4 color) {
+  if (color.a <= 0.0) {
+    return false;
+  }
+  return color.r < 1.0 || color.g < 1.0 || color.b < 1.0;
+}
 
 void main() {
   vec2 uv = FlutterFragCoord().xy / uSize;
@@ -30,10 +36,10 @@ void main() {
 
   vec4 color;
   float c;
-  if (tx != BLACK) {
+  if (!has_color(tx)) {
     float h = RING_R * uProgress;
-    float f = 0.5 + sin(angle) * h;
-    float di = sqrt(pow(uv.x - f, 2.0) + pow(uv.y - f, 2.0));
+    float di = sqrt(pow(uv.x - 0.5 - cos(angle) * h, 2.0) +
+                    pow(uv.y - 0.5 - sin(angle) * h, 2.0));
     if (r - h <= di && r + h >= di) {
       c = pow(1.0 - ((di - r + h) / (h * 2)), 2);
     } else {
@@ -43,15 +49,12 @@ void main() {
   }
 
   float d = sqrt(pow(rv.x - uv.x, 2.0) + pow(rv.y - uv.y, 2.0));
-  if (tx == BLACK) {
-    if (d <= lightr) {
-      c = pow(1.0 - clamp(d / lightr, 0.0, 1.0), 2.0);
-    }
-    if (c <= 0.2) {
+  if (has_color(tx)) {
+    if (c <= 0.3) {
       float di = sqrt(pow(uv.x - 0.5, 2.0) + pow(uv.y - 0.5, 2.0));
       float h = (1.0 - clamp(d / ar, 0.0, 1.0)) * 0.01;
       if (r - h <= di && r + h >= di) {
-        c = 0.2;
+        c = clamp((1.0 - (r - di) / h), 0.0, 1.0) * 0.3;
       } else {
         c = 0.0;
       }

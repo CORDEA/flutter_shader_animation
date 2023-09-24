@@ -37,6 +37,7 @@ class _Body extends HookConsumerWidget {
         painter: _Painter(
           shader.requireValue.fragmentShader(),
           icon.requireValue,
+          1,
         ),
         child: const AspectRatio(aspectRatio: 1),
       );
@@ -51,10 +52,11 @@ class _Body extends HookConsumerWidget {
 }
 
 class _Painter extends CustomPainter {
-  _Painter(this.shader, this.image);
+  _Painter(this.shader, this.image, this.progress);
 
   final ui.FragmentShader shader;
   final ui.Image image;
+  final double progress;
 
   @override
   void paint(ui.Canvas canvas, ui.Size size) {
@@ -63,6 +65,7 @@ class _Painter extends CustomPainter {
     }
     shader.setFloat(0, size.width);
     shader.setFloat(1, size.height);
+    shader.setFloat(2, progress);
     shader.setImageSampler(0, image);
     canvas.drawRect(
       Rect.fromLTWH(0, 0, size.width, size.height),

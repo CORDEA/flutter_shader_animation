@@ -2,6 +2,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 final fragmentShaderProvider =
@@ -29,24 +30,47 @@ class Home extends StatelessWidget {
 class _Body extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final controller =
+        useAnimationController(duration: const Duration(seconds: 3));
     final shader = ref.watch(fragmentShaderProvider);
     final icon = ref.watch(iconProvider);
     final Widget child;
     if (shader.hasValue && icon.hasValue) {
-      child = CustomPaint(
-        painter: _Painter(
-          shader.requireValue.fragmentShader(),
-          icon.requireValue,
-          1,
-        ),
-        child: const AspectRatio(aspectRatio: 1),
+      final animation = useMemoized(
+        () => controller.drive(CurveTween(curve: Curves.easeInOut)),
+        [controller],
+      );
+      child = AnimatedBuilder(
+        animation: animation,
+        builder: (_, __) {
+          return CustomPaint(
+            painter: _Painter(
+              shader.requireValue.fragmentShader(),
+              icon.requireValue,
+              animation.value,
+            ),
+            child: const AspectRatio(aspectRatio: 1),
+          );
+        },
       );
     } else {
       child = const CircularProgressIndicator();
     }
     return Padding(
       padding: const EdgeInsets.all(32),
-      child: Center(child: child),
+      child: Column(
+        children: [
+          child,
+          const SizedBox(height: 32),
+          ElevatedButton(
+            onPressed: () {
+              controller.value = 0;
+              controller.forward();
+            },
+            child: const Text('Start'),
+          ),
+        ],
+      ),
     );
   }
 }

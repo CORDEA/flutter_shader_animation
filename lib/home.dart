@@ -24,10 +24,38 @@ class _Body extends HookConsumerWidget {
     final shader = ref.watch(fragmentShaderProvider);
     final Widget child;
     if (shader.hasValue) {
-      child = const Center();
+      child = CustomPaint(
+        painter: _Painter(shader.requireValue.fragmentShader()),
+        child: const AspectRatio(aspectRatio: 1),
+      );
     } else {
       child = const CircularProgressIndicator();
     }
-    return Center(child: child);
+    return Padding(
+      padding: const EdgeInsets.all(32),
+      child: Center(child: child),
+    );
+  }
+}
+
+class _Painter extends CustomPainter {
+  _Painter(this.shader);
+
+  final ui.FragmentShader shader;
+
+  @override
+  void paint(ui.Canvas canvas, ui.Size size) {
+    if (size.isEmpty) {
+      return;
+    }
+    canvas.drawRect(
+      Rect.fromLTWH(0, 0, size.width, size.height),
+      Paint()..shader = shader,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) {
+    return true;
   }
 }
